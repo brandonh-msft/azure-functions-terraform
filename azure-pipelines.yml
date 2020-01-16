@@ -1,0 +1,19 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+jobs:
+  - job: 
+    displayName: Install Terraform
+    steps:
+    - task: TerraformTaskV1@0
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: '...'
+        backendAzureRmResourceGroupName: '...'
+        backendAzureRmStorageAccountName: '...'
+        backendAzureRmContainerName: '...'
+        backendAzureRmKey: 'tf/terraform.tfstate'
+    
