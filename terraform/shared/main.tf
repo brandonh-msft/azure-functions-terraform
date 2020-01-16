@@ -6,8 +6,13 @@
 # RESOURCES
 ##################################################################################
 
+resource "random_integer" "stor" {
+  min     = 1
+  max     = 99999
+}
+
 resource "azurerm_key_vault" "shared_key_vault" {
-  name                = "${var.appname}-kv-${var.environment}"
+  name                = "${var.appname}-kv-${var.environment}${random_integer.stor.result}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tenant_id           = var.key_vault_tenant_id
@@ -42,7 +47,7 @@ resource "azurerm_key_vault" "shared_key_vault" {
 #############################
 
 resource "azurerm_eventgrid_topic" "delivery_topic" {
-  name                = "${var.appname}-aztf-egt-${var.environment}"
+  name                = "${var.appname}-aztf-egt-${var.environment}${random_integer.stor.result}"
   location            = var.location
   resource_group_name = var.resource_group_name
 }

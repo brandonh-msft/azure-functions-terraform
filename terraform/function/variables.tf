@@ -21,3 +21,15 @@ variable "location" {
 variable "appInsightsKey" {
   type = string
 }
+
+variable "deliveryTopicBaseUri" {
+  type = string
+}
+
+variable "deliveryTopicName" {
+  type = string
+}
+
+variable "deliveryTopicKey" {
+  type = string
+}

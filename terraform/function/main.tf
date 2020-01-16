@@ -1,9 +1,13 @@
+resource "random_integer" "stor" {
+  min     = 1
+  max     = 99999
+}
+
 resource "azurerm_app_service_plan" "sp" {
   name                = format("%s-%s-fx-plan-%s", var.appname, var.domainprefix, var.environment)
   location            = var.location
   resource_group_name = var.resource_group_name
   kind                = "functionapp"
-  reserved            = true
   sku {
     tier = "Dynamic"
     size = "Y1"
@@ -11,7 +15,7 @@ resource "azurerm_app_service_plan" "sp" {
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                     = "${var.domainprefix}${var.environment}stor"
+  name                     = "${var.domainprefix}${var.environment}stor${random_integer.stor.result}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -20,7 +24,7 @@ resource "azurerm_storage_account" "sa" {
 }
 
 resource "azurerm_function_app" "fa" {
-  name                      = "${var.appname}-${var.domainprefix}-${var.environment}"
+  name                      = "${var.appname}-${var.domainprefix}-${var.environment}${random_integer.stor.result}"
   location                  = var.location
   resource_group_name       = var.resource_group_name
   app_service_plan_id       = azurerm_app_service_plan.sp.id
@@ -29,5 +33,7 @@ resource "azurerm_function_app" "fa" {
   version = "~3"
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY = var.appInsightsKey
+    EGNotificationTopic            = "${var.deliveryTopicBaseUri}/${var.deliveryTopicName}"
+    EGNotificationTopicKey         = var.deliveryTopicKey
   }
 }

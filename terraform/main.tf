@@ -50,13 +50,16 @@ module "appinsights" {
 }
 
 module "function" {
-  source              = "./function"
-  appname             = var.appname
-  domainprefix        = var.domainprefix
-  environment         = var.environment
-  resource_group_name = azurerm_resource_group.delivery.name
-  location            = azurerm_resource_group.delivery.location
-  appInsightsKey      = module.appinsights.instrumentation_key
+  source               = "./function"
+  appname              = var.appname
+  domainprefix         = var.domainprefix
+  environment          = var.environment
+  resource_group_name  = azurerm_resource_group.delivery.name
+  location             = azurerm_resource_group.delivery.location
+  appInsightsKey       = module.appinsights.instrumentation_key
+  deliveryTopicBaseUri = module.shared.delivery_topic_endpoint
+  deliveryTopicName    = module.shared.delivery_topic_name
+  deliveryTopicKey     = module.shared.delivery_topic_key
 }
 
 module "shared" {
