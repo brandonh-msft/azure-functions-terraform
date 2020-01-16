@@ -10,7 +10,7 @@ namespace Terraform.Functions
     public static class StorageEventHandlerFunctions
     {
         [FunctionName(nameof(StorageEventHandler))]
-        public static void StorageEventHandler([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log, [EventGrid(TopicEndpointUri = @"%EGNotificationTopic%", TopicKeySetting = @"EGNotificationTopicKey")]out string notificationMessage)
+        public static void StorageEventHandler([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log, [EventGrid(TopicEndpointUri = @"EGNotificationTopic", TopicKeySetting = @"EGNotificationTopicKey")]out string notificationMessage)
         {
             log.LogInformation(eventGridEvent.Data.ToString());
 
