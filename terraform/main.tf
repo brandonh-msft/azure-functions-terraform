@@ -1,32 +1,72 @@
-resource "azurerm_resource_group" "rg" {
-  name     = "${var.resourceGroupBaseName}-${var.environmentName}"
+##################################################################################
+# Main Terraform file 
+##################################################################################
+
+locals {
+  dev_environment_name = "dev"
+}
+
+##################################################################################
+# RESOURCES
+##################################################################################
+
+resource "azurerm_resource_group" "delivery" {
+  name     = "${var.appname}-delivery-rg-${var.environment}"
   location = var.location
-}
-
-resource "azurerm_storage_account" "sa" {
-  name                     = "${var.storageAccountPrefix}${var.environmentName}"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_kind             = "StorageV2"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "sp" {
-  name                = "${var.functionAppBaseName}-Plan"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  kind                = "FunctionApp"
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
+  tags = {
+    department      = var.department
+    appname         = var.appname
+    functional_area = "delivery"
   }
 }
 
-resource "azurerm_function_app" "fa" {
-  name                      = "${var.functionAppBaseName}-${var.environmentName}"
-  location                  = azurerm_resource_group.rg.location
-  resource_group_name       = azurerm_resource_group.rg.name
-  app_service_plan_id       = azurerm_app_service_plan.sp.id
-  storage_connection_string = azurerm_storage_account.sa.primary_connection_string
+resource "azurerm_resource_group" "shared" {
+  name     = "${var.appname}-shared-rg-${var.environment}"
+  location = var.location
+  tags = {
+    department      = var.department
+    appname         = var.appname
+    functional_area = "delivery"
+  }
 }
+
+module "delivery" {
+  source              = "./delivery"
+  appname             = var.appname
+  number_of_inboxes   = 3
+  environment         = var.environment
+  resource_group_name = azurerm_resource_group.delivery.name
+  location            = azurerm_resource_group.delivery.location
+  key_vault_id        = module.shared.shared_key_vault_id
+}
+
+module "appinsights" {
+  source              = "./appinsights"
+  appname             = var.appname
+  environment         = var.environment
+  resource_group_name = azurerm_resource_group.delivery.name
+  location            = azurerm_resource_group.delivery.location
+  key_vault_id        = module.shared.shared_key_vault_id
+}
+
+module "function" {
+  source              = "./function"
+  appname             = var.appname
+  domainprefix        = var.domainprefix
+  environment         = var.environment
+  resource_group_name = azurerm_resource_group.delivery.name
+  location            = azurerm_resource_group.delivery.location
+  appInsightsKey      = module.appinsights.instrumentation_key
+}
+
+module "shared" {
+  source                   = "./shared"
+  key_vault_tenant_id      = data.azurerm_client_config.current.tenant_id
+  appname                  = var.appname
+  access_policy_object_ids = var.environment == local.dev_environment_name ? [data.azurerm_client_config.current.object_id] : [data.azurerm_client_config.current.service_principal_object_id]
+  environment              = var.environment
+  resource_group_name      = azurerm_resource_group.shared.name
+  location                 = azurerm_resource_group.shared.location
+}
+
+# Add additional functional areas...

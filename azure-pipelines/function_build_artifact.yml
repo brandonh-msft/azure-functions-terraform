@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include: 
+      - 'master'
+  paths:
+    include:
+      - '/infrastructure/azure-pipelines/function_build_artifact.yml' # Changes to yaml
+      - '/src/*' # Changes to src
+    exclude:
+      - '*'
+
+variables:
+  buildConfiguration: 'Release'
+  artifactName:       'Terraform.Function'
+  workingDirectory:   '$(Build.SourcesDirectory)/src/$(artifactName)'
+  componentName:      'function_build_artifact'
+  functionProjectName:  '$(artifactName).csproj'
+  packDirectory: '$(Build.SourcesDirectory)/publish'
+  downloadDirectory: '$(Build.SourcesDirectory)/downloadDirectory'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- template: templates/build-test-report-template.yml
+
+# Zip the Function package
+- task: ArchiveFiles@2
+  displayName: 'Zip the $(packDirectory)/$(artifactName)'
+  inputs:
+    rootFolderOrFile: '$(packDirectory)/$(artifactName)' 
+    includeRootFolder: false 
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(artifactName)-$(buildConfiguration).zip'
+    replaceExistingArchive: true

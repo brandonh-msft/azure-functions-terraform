@@ -1,0 +1,26 @@
+pr: none
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - infrastructure/
+
+variables:
+- group: terraform-secrets
+
+stages:
+
+# Note: if you need to delete/purge and env, it is a manual opperation:
+# 1. Delete/comment the section below.
+# 2. Delete the associated tfstate file (see terraform-stages-template.yml for storage account name and container).
+# 3. Delete associated resource groups.
+
+- template: templates/terraform-stages-template.yml
+  parameters:
+    environment: dev
+    environmentDisplayName: Development
+    TerraformArguments: >-
+      -var department=dept
+#    TerraformEnvVariables: {}

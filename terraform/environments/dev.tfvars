@@ -1,5 +1,0 @@
-environmentName= "dev"
-resourceGroupBaseName="bh-msft-hardac"
-storageAccountPrefix="bhmsfthardac"
-location="westus2"
-functionAppBaseName="bh-msft-hardac"

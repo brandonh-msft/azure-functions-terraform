@@ -1,0 +1,21 @@
+steps:
+- script: 'find /usr/lib/x86_64-linux-gnu'
+  displayName: 'List all files before apt-get.'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- script: 'sudo apt-get install -y libmediainfo-dev'
+  displayName: 'apt-get install -y libmediainfo-dev'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- script: 'find /usr/lib/x86_64-linux-gnu'
+  displayName: 'List all files after apt-get.'
+  workingDirectory: $(Build.SourcesDirectory)
+
+# Copy the .so file to the packDirectory:
+- script: 'cp -L /usr/lib/x86_64-linux-gnu/libmediainfo.so $(packDirectory)/$(artifactName)'
+  displayName: 'Copy libmediainfo.so to $(packDirectory)/$(artifactName)'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- script: 'find .'
+  displayName: 'List all files after moving libemediainfo.'
+  workingDirectory: $(Build.SourcesDirectory)

@@ -1,0 +1,67 @@
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk 3.1'
+  inputs:
+    packageType: sdk
+    version: 3.1.x
+
+- script: 'find .'
+  displayName: 'List all files before build.'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet Publishing the build'
+  inputs:
+    command: publish
+    publishWebProjects: true
+    projects: '**/*$(webAppProjectName)'
+    arguments: '--configuration $(BuildConfiguration) --output $(packDirectory)'
+    zipAfterPublish: false
+    workingDirectory: $(workingDirectory)
+    modifyOutputPath: true
+
+- script: 'find .'
+  displayName: 'List all files after build.'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Install ReportGenerator'
+  inputs:
+    workingDirectory: $(Build.SourcesDirectory)
+    command: custom
+    custom: tool
+    arguments: 'install --tool-path tools dotnet-reportgenerator-globaltool'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build test projects'
+  inputs:
+    projects: '**/*Tests.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run unit tests - $(BuildConfiguration)'
+  inputs:
+    command: 'test'
+    arguments: '--no-build --configuration $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+    publishTestResults: true
+    projects: '**/*Tests.csproj'
+    workingDirectory: $(Build.SourcesDirectory) 
+
+- script: 'tools/reportgenerator -reports:src/*Tests/coverage.cobertura.xml -targetdir:CodeCoverage "-reporttypes:HtmlInline_AzurePipelines;Cobertura"'
+  displayName: 'Create code coverage report'
+  workingDirectory: $(Build.SourcesDirectory)
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage report'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
+    reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      
+- task: BuildQualityChecks@6
+  displayName: 'Check code coverage'
+  inputs:
+    checkCoverage: true
+    coverageFailOption: 'fixed'
+    coverageType: 'lines'
+    coverageThreshold: '10'
