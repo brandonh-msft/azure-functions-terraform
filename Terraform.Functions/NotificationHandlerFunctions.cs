@@ -12,6 +12,7 @@ namespace Terraform.Functions
         [FunctionName(nameof(NotificationHandler))]
         public static void NotificationHandler([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
+            log.LogTrace(@"GOT IT");
             log.LogInformation($@"Received notification! {eventGridEvent.Data}");
         }
     }
