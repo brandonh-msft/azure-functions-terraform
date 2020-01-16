@@ -11,6 +11,7 @@ jobs:
       inputs:
         provider: 'azurerm'
         command: 'init'
+        workingDirectory: terraform
         backendServiceArm: 'Internal Development - Brandon Hurlburt(0c249eea-065b-4034-955e-795d56b1e5d1)'
         backendAzureRmResourceGroupName: 'sandbox'
         backendAzureRmStorageAccountName: 'hurlburbdfutstorage'
